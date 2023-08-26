@@ -1,83 +1,54 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
+import React, {useState, useEffect} from 'react'
+
 import Searchbar from "./Searchbar/Searchbar";
 import ImageGallery from "./ImageGallery/ImageGallery";
 import Loader from "./Loader/Loader";
 import Button from "./Button/Button";
 import { fetchImages } from "api";
 
+const App = () => {
+  const [images, setImages] = useState([])
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
 
-
-export class App extends Component {
-  state = {
-    images : [],
-    queue : '',
-    page: 1
-  };
-
-  changeQueue = (newQueue) => {
-    this.setState(prevState => {
-      return {
-        ...prevState,
-        page : 1,
-        queue : newQueue
-      }
-    })
-  }
-
-  handleLoadMore = () => {
-    this.setState(prevState => {
-      return {
-        ...prevState,
-        page : prevState.page + 1
-      }
-    })
-  }
-
-  componentDidUpdate = (prevProps, prevState) => {
-    if(prevState.queue !== this.state.queue){
-      fetchImages(this.state.queue, this.state.page)
-      .then(res =>{
-        this.setState(prevState => {
-          return {
-            ...prevState,
-            loading : true,
-            images : res 
-          }
-        })
-    }).then(() =>{
-      this.setState(prevState =>{
-        return {
-          ...prevState,
-          loading : false
-        }
-      })
-    });
-    
+  useEffect(() =>{
+    if(query !== ''){
+        fetchImages(query, page)
+            .then(res =>{
+                setLoading(true)
+                if(page !== 1){
+                  setImages(prevState => {
+                    console.log([...prevState, ...res])
+                    return [...prevState, ...res]
+                  })
+                }else{
+                  setImages(res)
+                }
+            }).then(() =>{
+                setLoading(false)
+            });
     }
-    else if(prevState.page !== this.state.page){
-      fetchImages(this.state.queue, this.state.page)
-      .then(res =>{
-        this.setState(prevState => {
-          return {
-            ...prevState,
-            images : [...prevState.images, ...res] 
-          }
-        })
-      })
     
-    }
+    }, [query, page])
+
+ 
+
+  const changeQuery = newQuery => {
+    setQuery(newQuery)
   }
 
-  render() {
-    return (
-      <>
-        <Searchbar changeQueue={this.changeQueue}/>
-        {this.state.loading ? <Loader/> : <ImageGallery images={this.state.images}/>}
-        {this.state.images.length === 12 ? <Button loadMore={this.handleLoadMore}/> : null}
+  const handleLoadMore = () =>{
+    setPage(prevState => prevState + 1)
+  }
+  
+  return (
+    <>
+        <Searchbar changeQueue={changeQuery}/>
+        {loading ? <Loader/> : <ImageGallery images={images}/>}
+        {images.length >= 12 ? <Button loadMore={handleLoadMore}/> : null}
       </>
-    );
-  }
+  )
 }
 
-ReactDOM.render(<App step={5} />, document.getElementById("root"));
+export default App

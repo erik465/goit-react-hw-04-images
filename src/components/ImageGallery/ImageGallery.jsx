@@ -9,7 +9,6 @@ const ImageGallery = ({images}) => {
   return (
     <StyledGallery className="gallery">
         {images.map((image => {
-          console.log(image)
           return <ImageGalleryItem key={image.id} small={image.webformatURL} large={image.largeImageURL}/>
         }))}
     </StyledGallery>
