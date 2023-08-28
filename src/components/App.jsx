@@ -36,6 +36,7 @@ const App = () => {
 
   const changeQuery = newQuery => {
     setQuery(newQuery)
+    setPage(1)
   }
 
   const handleLoadMore = () =>{
